@@ -1,0 +1,384 @@
+\documentclass[aspectratio=169, 10pt]{beamer}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+
+\definecolor{cornellred}{RGB}{179,27,27}
+\definecolor{darkgray}{RGB}{50,50,50}
+\definecolor{lightgray}{RGB}{245,245,245}
+\definecolor{accentblue}{RGB}{33,150,243}
+\definecolor{accentgreen}{RGB}{56,142,60}
+\definecolor{accentorange}{RGB}{200,70,0}
+
+\setbeamercolor{palette primary}{bg=cornellred, fg=white}
+\setbeamercolor{palette secondary}{bg=darkgray, fg=white}
+\setbeamercolor{palette tertiary}{bg=cornellred!80, fg=white}
+\setbeamercolor{palette quaternary}{bg=cornellred, fg=white}
+\setbeamercolor{structure}{fg=cornellred}
+\setbeamercolor{block title}{bg=cornellred, fg=white}
+\setbeamercolor{block body}{bg=lightgray, fg=darkgray}
+\setbeamercolor{alerted text}{fg=accentorange}
+\setbeamercolor{frametitle}{bg=cornellred, fg=white}
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}{
+  \leavevmode\hbox{%
+    \begin{beamercolorbox}[wd=.33\paperwidth,ht=2.25ex,dp=1ex,center]{palette primary}%
+      \usebeamerfont{author in head/foot}\small Ishan Patwardhan \textbar{} ip259%
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.34\paperwidth,ht=2.25ex,dp=1ex,center]{palette secondary}%
+      \usebeamerfont{title in head/foot}\small ORIE5570 --- Final Presentation%
+    \end{beamercolorbox}%
+    \begin{beamercolorbox}[wd=.33\paperwidth,ht=2.25ex,dp=1ex,right]{palette primary}%
+      \usebeamerfont{date in head/foot}\small\insertframenumber{}/\inserttotalframenumber\hspace*{2ex}%
+    \end{beamercolorbox}}%
+}
+
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{array}
+\usepackage{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{lmodern}
+\usefonttheme{professionalfonts}
+
+% Colored emphasis (no \bfseries — avoids nullfont in XeTeX color groups)
+\newcommand{\blu}[1]{{\color{accentblue}#1}}
+\newcommand{\red}[1]{{\color{cornellred}#1}}
+\newcommand{\grn}[1]{{\color{accentgreen}#1}}
+
+\title[RL \& Bayesian Methods for Crypto]{%
+  Reinforcement Learning \& Bayesian Methods\\for Cryptocurrency Portfolio Management}
+\subtitle{DQN $\cdot$ REINFORCE $\cdot$ Market Simulation $\cdot$ Bayesian Bandits}
+\author[Ishan Patwardhan]{%
+  \textbf{Ishan Patwardhan}\quad|\quad\texttt{ip259@cornell.edu}\\[2pt]
+  \small Cornell University, Operations Research \& Information Engineering}
+\date[Apr 30, 2026]{ORIE5570 --- April 30, 2026}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+% ===========================================================================
+% SLIDE 1 — INTRODUCTION
+% ===========================================================================
+\begin{frame}[t]{Slide 1 \quad Introduction \& Professional Background}
+\vspace{2pt}
+\begin{columns}[T]
+
+  \begin{column}{0.47\textwidth}
+    \textbf{About Me}
+    \vspace{2pt}
+    \begin{itemize}\setlength\itemsep{3pt}\small
+      \item Graduate student, Cornell University\\
+            \textit{ORIE --- Operations Research \& Information Engineering}
+      \item Research focus: reinforcement learning,\\
+            financial optimization, Bayesian inference
+      \item Prior work: quantitative modeling in\\
+            financial time-series and sequential decisions
+    \end{itemize}
+
+    \vspace{6pt}
+    \textbf{This Project}
+    \vspace{2pt}
+    \begin{itemize}\setlength\itemsep{3pt}\small
+      \item \blu{4-part} study applying RL and Bayesian\\
+            methods to live cryptocurrency markets
+      \item Asset universe: BTCB, ETH, SOL, BNB, USDC
+      \item Combines \textit{trading policy design} with\\
+            \textit{systemic / regulatory market analysis}
+    \end{itemize}
+  \end{column}
+
+  \begin{column}{0.50\textwidth}
+    \begin{block}{Four-Part Framework}
+    \vspace{2pt}
+    \small
+    \begin{tabular}{>{\bfseries\color{cornellred}}cl}
+      Part 1 & Environment design \& feature engineering \\[2pt]
+      Part 2 & Deep Q-Network (DQN) trading agent \\[2pt]
+      Part 3 & REINFORCE + 3 trader archetypes, \\
+             & Shapley attribution, market simulation \\[2pt]
+      Part 4 & Bayesian bandits: UCB1, Bayes-UCB, \\
+             & Thompson Sampling on 5 crypto arms \\
+    \end{tabular}
+    \vspace{2pt}
+    \end{block}
+
+    \vspace{6pt}
+    \begin{alertblock}{Why Crypto?}
+    \small
+    Extreme regime shifts, manipulative microstructure,
+    and herd dynamics make crypto an ideal stress-test
+    for adaptive RL and sequential Bayesian decisions.
+    \end{alertblock}
+  \end{column}
+
+\end{columns}
+\end{frame}
+
+% ===========================================================================
+% SLIDE 2 — BENEFITS
+% ===========================================================================
+\begin{frame}[t]{Slide 2 \quad Benefits to the End User}
+\vspace{2pt}
+\begin{columns}[T]
+
+  \begin{column}{0.48\textwidth}
+    \begin{block}{\small\textbf{Institutional Asset Manager (BlackRock-like)}}
+    \vspace{2pt}
+    \begin{itemize}\setlength\itemsep{3pt}\small
+      \item \grn{Capital preservation:} REINFORCE-Manipulator\\
+            returned \red{$-$6\%} vs.\ \red{$-$46\%} buy-and-hold\\
+            --- preserved \blu{94\%} of capital in bear market
+      \item \grn{Explainable AI:} Shapley values identify\\
+            exact signals driving each policy\\
+            (RSI for arb; volume for manipulator; 7-day\\
+            return for herder) --- auditable to compliance
+      \item \grn{Regime-aware allocation:} policies adapt\\
+            dynamically to rise / steady / decline
+      \item \grn{Bayesian portfolio selection:} Thompson\\
+            Sampling allocates across 5 assets with\\
+            quantified posterior uncertainty, $\Gamma_T = 0.15$
+    \end{itemize}
+    \vspace{2pt}
+    \end{block}
+  \end{column}
+
+  \begin{column}{0.48\textwidth}
+    \begin{block}{\small\textbf{Regulator / Government Body (DOB)}}
+    \vspace{2pt}
+    \begin{itemize}\setlength\itemsep{3pt}\small
+      \item \grn{Manipulator detection:} front-runners\\
+            identified via microstructure (MA deviation,\\
+            realized vol, volume) --- not price level;\\
+            requires \textit{order-book} surveillance
+      \item \grn{Crisis early warning:} herder-dominated\\
+            markets generate \blu{6.75$\times$} more cascade\\
+            events than arbitrageur markets
+      \item \grn{Stablecoin surveillance:} arbitrageur surge\\
+            predicts USDT peg stress (grounded in\\
+            actual USDT-USD hourly deviation data)
+      \item \grn{Equal-mix policy:} 33/33/34 trader mix\\
+            achieves best balance of efficiency,\\
+            stability, and crisis frequency
+    \end{itemize}
+    \vspace{2pt}
+    \end{block}
+  \end{column}
+
+\end{columns}
+\vspace{4pt}
+\centering\small\textit{The same model serves both trading desks and regulatory surveillance.}
+\end{frame}
+
+% ===========================================================================
+% SLIDE 3 — DATA
+% ===========================================================================
+\begin{frame}[t]{Slide 3 \quad Data Description}
+\vspace{2pt}
+\begin{columns}[T]
+
+  \begin{column}{0.50\textwidth}
+    \begin{block}{Primary Dataset --- BTCB-USD}
+    \vspace{2pt}
+    \small
+    \begin{tabular}{>{\bfseries}p{2.5cm} p{3.8cm}}
+      Asset       & BTCB-USD (Bitcoin BEP-20) \\
+      Frequency   & Hourly OHLCV \\
+      Observations & \blu{17,248} hourly rows \\
+      Period      & Mar 2024 -- Feb 2026 \\
+      Train split & Mar 2024 -- Oct 2025 \\
+      Test split  & Oct 2025 -- Feb 2026 \\
+    \end{tabular}
+    \vspace{2pt}
+    \end{block}
+
+    \vspace{4pt}
+    \begin{block}{Supplementary Data}
+    \vspace{2pt}
+    \small
+    \begin{tabular}{>{\bfseries}p{2.5cm} p{3.8cm}}
+      Cross-assets & ETH, Gold, Silver, S\&P500 \\
+                   & (correlation study by regime) \\
+      Stablecoin   & USDT-USD hourly peg data\\
+                   & 3,394 hrs; mean dev = 0.058\% \\
+      Bandit study & ETH, SOL, BNB, USDC (1h) \\
+                   & resampled to 8h periods \\
+      Aligned obs. & \blu{1,990} 8h periods $\times$ 5 arms \\
+    \end{tabular}
+    \vspace{2pt}
+    \end{block}
+  \end{column}
+
+  \begin{column}{0.46\textwidth}
+    \begin{alertblock}{Key Periods}
+    \vspace{2pt}
+    \small
+    \textbf{Training (Mar 2024 -- Oct 2025):}\\
+    \quad $\approx$13,000 hourly obs.; varied regimes\\[4pt]
+    \textbf{Test (Oct 2025 -- Feb 2026):}\\
+    \quad \red{BTCB declined 46.2\%} --- severe bear\\
+    \quad Critical stress-test for all agents\\[4pt]
+    \textbf{Bandit horizon ($T=500$):}\\
+    \quad Bootstrap resampled; 100 replications
+    \vspace{2pt}
+    \end{alertblock}
+
+    \vspace{4pt}
+    \begin{block}{Market Regimes \& ETH Correlation}
+    \vspace{2pt}
+    \small
+    \begin{tabular}{lcc}
+    \toprule
+    Regime & \% Hours & ETH Corr \\
+    \midrule
+    Steady  & 64\% & 0.756 \\
+    Decline & 21\% & \textbf{0.810} \\
+    Rise    & 15\% & 0.677 \\
+    \bottomrule
+    \end{tabular}\\[3pt]
+    \footnotesize Gold goes \textit{negative} in rise ($-$0.12):
+    flight-to-safety effect.
+    \vspace{2pt}
+    \end{block}
+  \end{column}
+
+\end{columns}
+\end{frame}
+
+% ===========================================================================
+% SLIDE 4 — METHODOLOGY
+% ===========================================================================
+\begin{frame}[t]{Slide 4 \quad Methodology}
+\vspace{2pt}
+\begin{columns}[T]
+
+  \begin{column}{0.48\textwidth}
+    \textbf{\small RL Agents (Parts 2 \& 3)}
+    \vspace{2pt}
+
+    \begin{block}{\small DQN --- Part 2}
+    \vspace{1pt}
+    \footnotesize Off-policy Q-learning; $\varepsilon$-greedy; replay buffer\\
+    Actions: \{Buy, Hold, Sell\}; 13-dim state vector
+    \vspace{1pt}
+    \end{block}
+
+    \vspace{3pt}
+    \begin{block}{\small REINFORCE + Baseline --- Part 3}
+    \vspace{1pt}
+    \footnotesize
+    On-policy Monte Carlo PG; 2-layer MLP (128 units)\\
+    $\nabla_\theta J = \mathbb{E}[\log\pi(a|s;\theta)\cdot(G_t - V(s))]$\\[2pt]
+    \textbf{Reward-shaped trader archetypes:}\\
+    \textcolor{accentblue}{Arb:} $r - 0.4\cdot\sigma_{24}\cdot f_\text{crypto}$\\
+    \textcolor{cornellred}{Manip:} $r + 0.15\cdot\bar{V}\cdot\text{sign}(r_{4h})\cdot d$\\
+    \textcolor{accentgreen}{Herder:} $r + 0.25\cdot\text{sign}(r_{24h})\cdot d$\\[2pt]
+    \textbf{Explainability:} SHAP KernelExplainer on $\pi(\text{Buy}|s)$
+    \vspace{1pt}
+    \end{block}
+  \end{column}
+
+  \begin{column}{0.48\textwidth}
+    \textbf{\small Bayesian Bandits (Part 4)}
+    \vspace{2pt}
+
+    \begin{block}{\small Setup}
+    \vspace{1pt}
+    \footnotesize
+    $K=5$ arms; $Y_t=\mathbf{1}[\text{8h return}>0]$; Beta(3,3) prior; $T=500$
+    \vspace{1pt}
+    \end{block}
+
+    \vspace{3pt}
+    \begin{block}{\small Four Algorithms}
+    \vspace{1pt}
+    \footnotesize
+    \begin{tabular}{>{\bfseries}p{1.8cm} p{4.0cm}}
+    UCB1     & $\hat\mu_k + \sqrt{2\ln t / n_k}$ \\
+    Bayes-UCB & $Q(1-1/t,\;\mathrm{Beta}(\alpha_k,\beta_k))$ \\
+    Thompson  & $\hat\theta_k \sim \mathrm{Beta}(\alpha_k,\beta_k)$ \\
+    Greedy    & $\arg\max_k\;\alpha_k/(\alpha_k+\beta_k)$ \\
+    \end{tabular}\\[2pt]
+    Info ratio: $\Gamma_t = [\mathbb{E}[\Delta_t]]^2 / I_t(\tilde\theta; A_t)$
+    \vspace{1pt}
+    \end{block}
+
+    \vspace{3pt}
+    \begin{block}{\small Market Simulation (Part 3)}
+    \vspace{1pt}
+    \footnotesize
+    7 trader compositions; 500 test-set steps\\
+    Signal: $S_t = w_\text{arb}d_\text{arb} + w_\text{man}d_\text{man} + w_\text{herd}d_\text{herd}$\\
+    Metrics: crisis freq., stablecoin stability, efficiency
+    \vspace{1pt}
+    \end{block}
+  \end{column}
+
+\end{columns}
+\end{frame}
+
+% ===========================================================================
+% SLIDE 5 — KEY FINDINGS
+% ===========================================================================
+\begin{frame}[t]{Slide 5 \quad Key Findings}
+\vspace{2pt}
+\begin{columns}[T]
+
+  \begin{column}{0.48\textwidth}
+    \textbf{\small\textcolor{cornellred}{Trading Performance}}
+    \begin{itemize}\setlength\itemsep{2pt}\small
+      \item \red{REINFORCE-Manipulator:} \blu{$-$6\%} vs.
+            $-$46\% buy-and-hold; preserved \blu{94\%} of capital
+      \item DQN collapsed to constant HOLD\\
+            (Q-values: Hold=0.0043, Buy=0.0041, Sell=0.0033)\\
+            Stochastic RL adapts; deterministic RL does not
+      \item Bayesian: Thompson Sampling regret \blu{9.19 $\pm$ 0.78};\\
+            info ratio $\Gamma_T = \blu{0.149} \ll 0.5$ bound\\
+            Optimal arm: \blu{BNB} ($\theta^*=0.519$)
+    \end{itemize}
+
+    \vspace{4pt}
+    \textbf{\small\textcolor{cornellred}{Shapley Attribution}}
+    \begin{itemize}\setlength\itemsep{2pt}\small
+      \item \textcolor{accentblue}{\textbf{Arb:}} RSI + 24h return (mean reversion)
+      \item \textcolor{cornellred}{\textbf{Manipulator:}} MA deviation + realized vol\\
+            (pure microstructure --- zero trend signals)
+      \item \textcolor{accentgreen}{\textbf{Herder:}} 7-day return dominant;\\
+            blind to RSI, volume, contrarian signals
+    \end{itemize}
+  \end{column}
+
+  \begin{column}{0.48\textwidth}
+    \textbf{\small\textcolor{cornellred}{Systemic / Regulatory Findings}}
+    \begin{itemize}\setlength\itemsep{2pt}\small
+      \item Herder markets: \blu{6.75$\times$} more crisis events\\
+            than arbitrageur markets (0.054 vs.\ 0.008)
+      \item All-manipulator markets: \blu{0} measured crises\\
+            but wealth extraction is \textit{silent}\\
+            $\Rightarrow$ requires order-book surveillance
+      \item Arbitrageur surge predicts USDT peg stress\\
+            (lowest stability: 18.1 vs.\ 22.6 all-manipulator)
+      \item \grn{Equal mix (33/33/34)} is the regulatory sweet spot:\\
+            balanced crisis, stability, and efficiency
+    \end{itemize}
+
+    \vspace{4pt}
+    \begin{alertblock}{\small Core Takeaway}
+    \small
+    Stochastic RL dominates deterministic Q-learning
+    in volatile regimes. Manipulator activity is best
+    detected via microstructure --- not price triggers.
+    A diverse trader ecosystem minimizes systemic risk.
+    \end{alertblock}
+  \end{column}
+
+\end{columns}
+\end{frame}
+
+\end{document}
